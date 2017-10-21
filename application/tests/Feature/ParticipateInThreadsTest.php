@@ -100,5 +100,21 @@ class ParticipateInForumTest extends TestCase
 		$this->assertDatabaseMissing('replies', ['id' => $reply->id, 'body' => 'Hello World']);
 	}
 
+	/** @test */
+	public function replies_that_contains_spam_may_not_be_created ()
+	{
+		$this->withoutExceptionHandling();
+		$this->signIn();
+		
+		$thread = create('App\Thread');
+		$reply = make('App\Reply', [
+			'body' => 'Yahoo Customer Support'
+		]);
+
+		$this->expectException(\Exception::class);
+
+		$this->post($thread->path().'/replies', $reply->toArray());
+	}
+
 
 }

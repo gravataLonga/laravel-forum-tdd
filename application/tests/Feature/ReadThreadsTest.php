@@ -19,6 +19,7 @@ class ReadThreadsTest extends TestCase
     /** @test */
     public function a_user_can_browser_threads()
     {
+        $this->withoutExceptionHandling();
         $response = $this->get('/threads')
             ->assertSee($this->thread->title);
     }

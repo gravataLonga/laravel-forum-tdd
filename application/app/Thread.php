@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Events\ThreadHasNewReply;
 use App\Notifications\ThreadWasUpdated;
 use App\RecordActivity;
 use App\ThreadSubscription;
@@ -57,16 +58,22 @@ class Thread extends Model
     	return $this->belongsTo('App\User', 'user_id');
     }
 
-    public function addReply($replies)
+    public function addReply($reply)
     {
-        $reply = $this->replies()->create($replies);
+        // (new \App\Spam)->detect(request('body'));
 
-        $this->subscriptions->filter(function ($sub) use ($reply) {
-            return $sub->user_id != $reply->user_id;
-        })
-        ->each->notify($reply);
-
+        $reply = $this->replies()->create($reply);
+        $this->notifySubscribers($reply);
+        // event(new ThreadHasNewReply($this, $reply));
         return $reply;
+    }
+
+    public function notifySubscribers($reply)
+    {
+        $this->subscriptions
+            ->where('user_id', '!=', $reply->user_id)
+            ->each
+            ->notify($reply);
     }
 
     /**
@@ -101,5 +108,11 @@ class Thread extends Model
         return $this->subscriptions()
             ->where('user_id', auth()->id())
             ->exists();
+    }
+
+    public function hasUpdateFor($user)
+    {
+        $key = optional($user)->visitedThreadCacheKey($this) ?: '';
+        return $this->updated_at > cache($key);
     }
 }
