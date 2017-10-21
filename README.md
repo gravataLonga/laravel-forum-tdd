@@ -24,3 +24,6 @@ Fell free to push new features, but first make sure you write your own test.
 
 Maybe i can help you. :)  
 
+## Author  
+
+This was video class which i pay to get out most of TDD's world, but other stuff present here it's my own creation. So feel free visit my website https://jonathan.pt or open an issue to enter contact with me.  
