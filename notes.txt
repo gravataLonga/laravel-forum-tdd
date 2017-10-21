@@ -1,0 +1,8 @@
+# forum
+
+1. Threat
+2. Reply
+3. User
+
+A. Threat is created by a User
+B. A reply belongs to a Threat and a User.

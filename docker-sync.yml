@@ -1,0 +1,14 @@
+# mandatory since 0.2.x
+version: "2"
+
+options:
+  compose-file-path: 'docker-compose-dev.yml'
+  cli_mode: 'auto'
+syncs:
+  forum-app:
+    src: './application/'
+    sync_strategy: 'native_osx'
+    sync_host_ip: '127.0.0.1'
+    sync_host_port: 10875
+    sync_excludes_type: 'docker/'
+    watch_excludes: ['.*/.git', '.*/node_modules', '.*/bower_components', '.*/sass-cache', '.*/.sass-cache', '.*/.sass-cache', '.coffee', '.scss', '.sass', '.gitignore']
