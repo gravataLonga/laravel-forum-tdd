@@ -10,41 +10,46 @@ use App\Thread;
 
 class RepliesController extends Controller
 {
-	public function __construct()
-	{
-		$this->middleware('auth')->except(['index']);
-	}
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['index']);
+    }
 
     public function index(Channel $channel, Thread $thread)
     {
         return $thread->replies()->paginate(10);
     }
-	
-    public function store($channel_id, Thread $thread, Spam $spam)
+    
+    public function store($channel_id, Thread $thread)
     {
-        $this->validate(request(), [
-            'body' => 'required'
-        ]);
+        try {
+            $this->validateReply();
 
-        $spam->detect(request('body'));
-
-    	$reply = $thread->addReply([
-    		'body' => request('body'),
-    		'user_id' => auth()->id()
-    	]);
+            $reply = $thread->addReply([
+                'body' => request('body'),
+                'user_id' => auth()->id()
+            ]);
+        }catch(\Exception $e) {
+            return response('Sorry, your reply can be proccess at this time.', 422);
+        }
 
         if (request()->expectsJson()) {
             return response($reply->load('owner'), 200);
         }
 
-    	return back()->with('flash', 'A reply was added');
+        return back()->with('flash', 'A reply was added');
     }
 
     public function update(Reply $reply)
     {
         $this->authorize('update', $reply);
 
-        $reply->update(request(['body']));
+        try {
+            $this->validateReply();
+            $reply->update(request(['body']));
+        }catch(\Exception $e) {
+            return response('Sorry, your reply can be proccess at this time.', 422);
+        }
     }
 
     public function destroy (Reply $reply)
@@ -58,5 +63,14 @@ class RepliesController extends Controller
         }
 
         return back()->with('flash', 'Reply was deleted with success');
+    }
+
+    protected function validateReply()
+    {
+        $this->validate(request(), [
+            'body' => 'required'
+        ]);
+
+        resolve(Spam::class)->detect(request('body'));
     }
 }

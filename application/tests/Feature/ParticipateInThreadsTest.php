@@ -20,6 +20,7 @@ class ParticipateInForumTest extends TestCase
 	/** @test */
 	public function an_authenticate_user_can_participate_in_forum_thread()
 	{
+		$this->withExceptionHandling();
 		// $this->be(create('App\User'));
 		$this->signIn();
 		
