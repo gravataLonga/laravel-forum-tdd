@@ -9,15 +9,14 @@ use App\Inspections\Contract\DetectionInterface;
 class InvalidKeywords implements DetectionInterface
 {
 	protected $keywords = [
-		'yahoo customer support',
-		'fuck',
+		'yahoo customer support'
 	];
 
 	public function detect($body)
 	{
 		foreach ($this->keywords as $word) {
 			if (stripos($body, $word) !== false) {
-				throw new SpamException("Spam was detected", 1);
+				throw new SpamException("Spam was detected");
 			}
 		}
 	}

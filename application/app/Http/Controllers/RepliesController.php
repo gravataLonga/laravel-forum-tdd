@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Channel;
-use App\Inspections\Spam;
 use App\Reply;
 use App\Thread;
+use App\Channel;
+use App\Rules\Testing;
+use App\Rules\Spamfree;
+use Illuminate\Http\Request;
 
 
 class RepliesController extends Controller
@@ -20,19 +22,17 @@ class RepliesController extends Controller
         return $thread->replies()->paginate(10);
     }
     
-    public function store($channel_id, Thread $thread)
+    public function store(Request $request, $channel_id, Thread $thread)
     {
-        try {
-            $this->validateReply();
+        $request->validate([
+            'body' => ['required', new SpamFree],
+        ]);
 
-            $reply = $thread->addReply([
-                'body' => request('body'),
-                'user_id' => auth()->id()
-            ]);
-        }catch(\Exception $e) {
-            return response('Sorry, your reply can be proccess at this time.', 422);
-        }
-
+        $reply = $thread->addReply([
+            'body' => request('body'),
+            'user_id' => auth()->id()
+        ]);
+        
         if (request()->expectsJson()) {
             return response($reply->load('owner'), 200);
         }
@@ -43,13 +43,10 @@ class RepliesController extends Controller
     public function update(Reply $reply)
     {
         $this->authorize('update', $reply);
-
-        try {
-            $this->validateReply();
-            $reply->update(request(['body']));
-        }catch(\Exception $e) {
-            return response('Sorry, your reply can be proccess at this time.', 422);
-        }
+        $this->validate(request(), [
+            'body' => ['required', new Spamfree]
+        ]);
+        $reply->update(request(['body']));
     }
 
     public function destroy (Reply $reply)
@@ -63,14 +60,5 @@ class RepliesController extends Controller
         }
 
         return back()->with('flash', 'Reply was deleted with success');
-    }
-
-    protected function validateReply()
-    {
-        $this->validate(request(), [
-            'body' => 'required'
-        ]);
-
-        resolve(Spam::class)->detect(request('body'));
     }
 }

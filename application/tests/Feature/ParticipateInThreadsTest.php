@@ -21,12 +21,11 @@ class ParticipateInForumTest extends TestCase
 	public function an_authenticate_user_can_participate_in_forum_thread()
 	{
 		$this->withExceptionHandling();
-		// $this->be(create('App\User'));
 		$this->signIn();
 		
 		$thread = create('App\Thread');
-		$reply = make('App\Reply'); // create() -> reply will create a database, and them save again. Make is better.
-		$this->post($thread->path().'/replies', $reply->toArray());
+		$reply = make('App\Reply');
+		$response =$this->post($thread->path().'/replies', $reply->toArray());
 		
 		$this->assertDatabaseHas('replies', ['body' => $reply->body]);
 		$this->assertEquals(1, $thread->fresh()->replies_count);
@@ -40,7 +39,7 @@ class ParticipateInForumTest extends TestCase
 		$thread = create('App\Thread');
 		$reply = make('App\Reply', ['body' => null]);
 
-		$this->withExceptionHandling()
+		$this
 			->post($thread->path().'/replies', $reply->toArray())
 			->assertSessionHasErrors('body');
 	}
@@ -74,7 +73,7 @@ class ParticipateInForumTest extends TestCase
 	}
 
 	/** @test */
-	public function  authorized_users_can_update_replies ()
+	public function authorized_users_can_update_replies ()
 	{
 		$this->withoutExceptionHandling();
 		$this->signIn();
@@ -104,7 +103,6 @@ class ParticipateInForumTest extends TestCase
 	/** @test */
 	public function replies_that_contains_spam_may_not_be_created ()
 	{
-		$this->withoutExceptionHandling();
 		$this->signIn();
 		
 		$thread = create('App\Thread');
@@ -112,10 +110,7 @@ class ParticipateInForumTest extends TestCase
 			'body' => 'Yahoo Customer Support'
 		]);
 
-		$this->expectException(\Exception::class);
-
-		$this->post($thread->path().'/replies', $reply->toArray());
+		$this->postJson($thread->path().'/replies', $reply->toArray())
+			->assertStatus(422);
 	}
-
-
 }
